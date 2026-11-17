@@ -1,0 +1,7 @@
+PART 9 : Agent deployment (agent is deployed in the runtime service)
+
+1. To see the changes that will be deployed -> agentcore deploy --diff
+
+2. To deploy the changes -> agentcore deploy -v
+
+3. Store the runtime ARN and Gateway URL

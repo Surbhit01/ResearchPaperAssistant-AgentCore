@@ -1,0 +1,42 @@
+# Secrets and local settings
+.env
+.env.*
+!.env.example
+!ui/.env.example
+
+# AgentCore project: generated and build output
+ResearchAssistant/agentcore/.cli/
+ResearchAssistant/agentcore/.cache/
+ResearchAssistant/agentcore/cdk/node_modules/
+ResearchAssistant/agentcore/cdk/cdk.out/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Build output
+lambda/*.zip
+
+# Evaluation runs and backups
+evals/runs/
+*.bak
+
+# OS and editor
+.DS_Store
+.idea/
+.vscode/
+
+# Permission files (rendered from the .tmpl templates)
+iam/tools-access.json
+iam/interceptor-invoke-policy.json
+iam/lambda-trust-policy.json
+lambda/tools-env.json
+guardrails/create-guardrails.json
+knowledge-base/kb-permissions.json
+knowledge-base/kb-trust-policy.json
+knowledge-base/create-kb.json
+knowledge-base/create-data-source.json
+ResearchAssistant/app/ResearchAssistantAgent/policies/allow_guardrails.json
+policies/cap_max_results.cedar
+policies/arxiv_id_match.cedar

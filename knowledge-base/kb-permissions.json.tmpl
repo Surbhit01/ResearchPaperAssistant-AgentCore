@@ -1,0 +1,37 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EmbedWithTitanV2",
+      "Effect": "Allow",
+      "Action": "bedrock:InvokeModel",
+      "Resource": "arn:aws:bedrock:${REGION}::foundation-model/amazon.titan-embed-text-v2:0"
+    },
+    {
+      "Sid": "ListDataBucket",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::${BUCKET}",
+      "Condition": { "StringEquals": { "aws:ResourceAccount": "${ACCOUNT_ID}" } }
+    },
+    {
+      "Sid": "ReadLibraryDocuments",
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::${BUCKET}/library/*",
+      "Condition": { "StringEquals": { "aws:ResourceAccount": "${ACCOUNT_ID}" } }
+    },
+    {
+      "Sid": "UseVectorIndex",
+      "Effect": "Allow",
+      "Action": [
+        "s3vectors:GetIndex",
+        "s3vectors:QueryVectors",
+        "s3vectors:PutVectors",
+        "s3vectors:GetVectors",
+        "s3vectors:DeleteVectors"
+      ],
+      "Resource": "arn:aws:s3vectors:${REGION}:${ACCOUNT_ID}:bucket/${PREFIX}-vectors/index/papers-index"
+    }
+  ]
+}

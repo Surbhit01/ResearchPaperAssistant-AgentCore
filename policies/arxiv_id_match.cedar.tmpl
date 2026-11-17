@@ -1,0 +1,10 @@
+forbid (
+  principal,
+  action == AgentCore::Action::"researchassistant___add_paper",
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:${REGION}:${ACCOUNT_ID}:gateway/${GATEWAY_ID}"
+)
+when {
+  context.input has arxiv_id &&
+  !(context.input.arxiv_id like "*.*") &&
+  !(context.input.arxiv_id like "*/*")
+};

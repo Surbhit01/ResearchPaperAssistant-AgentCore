@@ -1,0 +1,19 @@
+PART 8 : Agent (Project file setup)
+
+
+1. Run from the Agentcore project created. Create the agent
+Provide the name of the agent to create, language to be used, framework, memory, model provider etc. 
+Guardrail has not been set here. We will speify that later
+
+agentcore add agent --name ResearchAssistantAgent --type create --language Python --framework Strands \
+  --model-provider Bedrock --memory shortTerm --protocol HTTP --authorizer-type CUSTOM_JWT \
+  --discovery-url "$DISCOVERY_URL" --allowed-clients "$CLIENT_ID" --request-header-allowlist Authorization
+
+
+2. Modify the agent code, guardrails, mcp client files as per our usecase.
+
+3. The agent (runtime service) needs permission to access the guardrails. Add the permission policy json file.
+
+4. Use the helper script - set_runtime_guardrail.py to modify the agentcore.json configuration file
+
+5. Run agentcore validate. If everything is valid, the agent can be deployed.

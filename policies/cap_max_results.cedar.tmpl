@@ -1,0 +1,8 @@
+forbid (
+  principal,
+  action == AgentCore::Action::"researchassistant___search_arxiv",
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:${REGION}:${ACCOUNT_ID}:gateway/${GATEWAY_ID}"
+)
+when {
+  context.input has max_results && context.input.max_results > 10
+};

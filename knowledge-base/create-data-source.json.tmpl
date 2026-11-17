@@ -1,0 +1,20 @@
+{
+  "knowledgeBaseId": "${KB_ID}",
+  "name": "papers-library",
+  "description": "User papers under library/<user_id>/ with sidecar metadata",
+  "dataSourceConfiguration": {
+    "type": "S3",
+    "s3Configuration": {
+      "bucketArn": "arn:aws:s3:::${BUCKET}",
+      "bucketOwnerAccountId": "${ACCOUNT_ID}",
+      "inclusionPrefixes": ["library/"]
+    }
+  },
+  "dataDeletionPolicy": "DELETE",
+  "vectorIngestionConfiguration": {
+    "chunkingConfiguration": {
+      "chunkingStrategy": "FIXED_SIZE",
+      "fixedSizeChunkingConfiguration": { "maxTokens": 300, "overlapPercentage": 20 }
+    }
+  }
+}

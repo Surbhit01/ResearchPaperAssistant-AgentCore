@@ -1,0 +1,20 @@
+{
+  "name": "${PREFIX}-kb",
+  "description": "Papers saved by each user, searched with a per-user metadata filter",
+  "roleArn": "arn:aws:iam::${ACCOUNT_ID}:role/${PREFIX}-kb-role",
+  "knowledgeBaseConfiguration": {
+    "type": "VECTOR",
+    "vectorKnowledgeBaseConfiguration": {
+      "embeddingModelArn": "arn:aws:bedrock:${REGION}::foundation-model/amazon.titan-embed-text-v2:0",
+      "embeddingModelConfiguration": {
+        "bedrockEmbeddingModelConfiguration": { "dimensions": 1024, "embeddingDataType": "FLOAT32" }
+      }
+    }
+  },
+  "storageConfiguration": {
+    "type": "S3_VECTORS",
+    "s3VectorsConfiguration": {
+      "indexArn": "arn:aws:s3vectors:${REGION}:${ACCOUNT_ID}:bucket/${PREFIX}-vectors/index/papers-index"
+    }
+  }
+}

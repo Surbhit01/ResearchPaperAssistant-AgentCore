@@ -1,0 +1,27 @@
+PART 7: GATEWAY AND POLICY (AgentCore)
+
+1. Create a folder /policies and add the cedar file for allowing all tools
+
+2. Create agentcore project without agent
+agentcore create --name $PROJECT --no-agent
+
+3. Define the Gateway
+
+From $PROJECT folder
+agentcore add gateway --name researchassistant-gw --protocol-type MCP --authorizer-type CUSTOM_JWT \
+  --discovery-url "$DISCOVERY_URL" --allowed-clients "$CLIENT_ID"
+
+4. Add lambda as the gateway target
+
+agentcore add gateway-target --name researchassistant --gateway researchassistant-gw --type lambda-function-arn \
+  --lambda-arn arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:$PREFIX-tools --tool-schema-file ../lambda/tool_schema.json
+
+5. Add policy engine
+
+agentcore add policy-engine --name ResearchAssistantPolicyEngine --attach-to-gateways researchassistant-gw --attach-mode ENFORCE \
+ && agentcore add policy --name allow_all_tools --engine ResearchAssistantPolicyEngine --source ../policies/allow_all_tools.cedar \
+      --enforcement-mode ACTIVE --validation-mode IGNORE_ALL_FINDINGS
+
+6. Validate
+
+agentcore validate

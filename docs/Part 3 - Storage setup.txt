@@ -1,0 +1,62 @@
+PART 3 : AWS S3 STORAGE AND KNOWLEDGE BASE
+
+1. Create S3 bucket to store the pdfs. Added the bucket name as env var (Will not work if name has upper case)
+
+aws s3 mb s3://$PREFIX-$ACCOUNT_ID --region $REGION
+
+2. Check if bucket has been added
+aws s3 ls | grep "$BUCKET_NAME"
+
+3. Create the vector store bucket
+aws s3vectors create-vector-bucket --vector-bucket-name $PREFIX-vectors --region $REGION
+
+4. Create the index inside the bucket
+
+We specify the data type, dimension, distance metric for the index. Once these values are set, they cannot change for a given index
+
+aws s3vectors create-index --vector-bucket-name $PREFIX-vectors --index-name papers-index --data-type float32 \
+  --dimension 1024 --distance-metric cosine \
+  --metadata-configuration '{"nonFilterableMetadataKeys":["AMAZON_BEDROCK_TEXT","AMAZON_BEDROCK_METADATA"]}' --region $REGION
+
+5. Verify if the values were set properly in the index
+
+aws s3vectors get-index --vector-bucket-name $PREFIX-vectors --index-name papers-index --region $REGION \
+  --query 'index.{dim:dimension,metric:distanceMetric,type:dataType,nonFilterable:metadataConfiguration.nonFilterableMetadataKeys}'
+
+6. Create a folder /knowledge-base for knowledge base setup
+
+6.1 mkdir knowledge-base
+
+6.2 Create role and policy for the knowledge base by using kb-trust-policy.json and kb-permissions.json
+
+Create Role : aws iam create-role --role-name $PREFIX-kb-role --assume-role-policy-document file://knowledge-base/kb-trust-policy.json --query Role.Arn --output text
+
+Put Role Policy : aws iam put-role-policy --role-name $PREFIX-kb-role --policy-name kb-access --policy-document file://knowledge-base/kb-permissions.json
+
+6.3 Create the knowledge base once roles are policies for knowledge base it set. Store the output as KB_ID in env file
+
+aws bedrock-agent create-knowledge-base --cli-input-json file://knowledge-base/create-kb.json --region $REGION --query knowledgeBase.knowledgeBaseId --output text
+
+6.4 Verify if knowledge base was created successfully. Check status and store
+aws bedrock-agent get-knowledge-base --knowledge-base-id $KB_ID --region $REGION --query 'knowledgeBase.{status:status,store:storageConfiguration.type}'
+
+6.5 Create the datasource using create-data-source.json (replace the env variables). Store the response as DATA_SOURCE_ID in env file
+
+
+aws bedrock-agent create-data-source --cli-input-json file://knowledge-base/create-data-source.json --region $REGION --query dataSource.dataSourceId --output text
+
+
+7. Add some data for each user for testing
+
+8. Index the data
+
+Start the ingestion job - 
+aws bedrock-agent start-ingestion-job --knowledge-base-id $KB_ID --data-source-id $DATA_SOURCE_ID --region $REGION --query ingestionJob.ingestionJobId --output text
+
+Check job status using the ID generated above (Replace in $JOB) - 
+aws bedrock-agent get-ingestion-job --knowledge-base-id $KB_ID --data-source-id $DATA_SOURCE_ID --ingestion-job-id $JOB --region $REGION --query 'ingestionJob.{status:status,stats:statistics}'
+
+9. Test if kb and ingestion are working properly using kb_search.py as helper script
+
+python scripts/kb_search.py "How does multi-head self-attention work?"
+python scripts/kb_search.py "How does multi-head self-attention work?" --user "$TEST_USER2"

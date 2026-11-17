@@ -1,0 +1,11 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ApplyInputGuardrail",
+      "Effect": "Allow",
+      "Action": "bedrock:ApplyGuardrail",
+      "Resource": "arn:aws:bedrock:${REGION}:${ACCOUNT_ID}:guardrail/${GUARDRAIL_ID}"
+    }
+  ]
+}

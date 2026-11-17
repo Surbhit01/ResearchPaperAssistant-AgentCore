@@ -1,0 +1,38 @@
+{
+  "name": "${PREFIX}-input-guard",
+  "description": "Input guardrail for the research paper assistant: keeps requests on topic and blocks prompt attacks",
+  "topicPolicyConfig": {
+    "topicsConfig": [
+      {
+        "name": "OffTopicRequests",
+        "definition": "Any request unrelated to finding, saving, reading or discussing academic research papers, such as general knowledge, arithmetic, creative writing, news, weather, recipes or coding help.",
+        "examples": [
+          "Where is India located?",
+          "What is 3+3?",
+          "Write me a poem about autumn",
+          "What is the weather like today?",
+          "Give me a recipe for pasta carbonara"
+        ],
+        "type": "DENY",
+        "inputAction": "BLOCK",
+        "inputEnabled": true,
+        "outputAction": "NONE",
+        "outputEnabled": false
+      }
+    ],
+    "tierConfig": {
+      "tierName": "CLASSIC"
+    }
+  },
+  "contentPolicyConfig": {
+    "filtersConfig": [
+      {
+        "type": "PROMPT_ATTACK",
+        "inputStrength": "HIGH",
+        "outputStrength": "NONE"
+      }
+    ]
+  },
+  "blockedInputMessaging": "I can only help with finding, saving and discussing research papers. Try asking about a paper or a research topic.",
+  "blockedOutputsMessaging": "Sorry, I can't provide that response."
+}

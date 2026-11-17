@@ -1,0 +1,57 @@
+PART 11 : CLEANUP
+
+Order matters: AgentCore stack first, then what it references. This does not touch the shared CDKToolkit bootstrap or any other project.
+Load the .env first in the terminal: set -a; source .env; set +a
+Check the right account before deleting anything: aws sts get-caller-identity
+
+1. Delete the Cedar rules created from the console. The project does not know about them, so the policy engine cannot be removed while they exist.
+In the AgentCore console open the policy engine ResearchAssistantPolicyEngine and delete the rules you added by hand (the max results cap and the arXiv ID rule). 
+The allow_all_tools rule belongs to the stack and is removed with it.
+
+2. Remove the interceptor permission added by hand to the Gateway role. A role with an inline policy added outside the stack cannot be deleted by CloudFormation.
+
+GW_ROLE=$(aws bedrock-agentcore-control get-gateway --gateway-identifier $GATEWAY_ID --region $REGION --query roleArn --output text | awk -F/ '{print $NF}')
+aws iam delete-role-policy --role-name "$GW_ROLE" --policy-name invoke-interceptor
+
+3. Remove the AgentCore resources (runtime, memory, gateway, policy engine) by deploying an empty project.
+
+(cd "$PROJECT" && agentcore remove all && agentcore deploy -v)
+
+Check that the stack is deleted or empty:
+aws cloudformation describe-stacks --stack-name AgentCore-${PROJECT}-default --region $REGION
+It should report that the stack does not exist.
+
+4. Delete the Lambda functions, the S3 bucket and the Cognito user pool.
+
+aws lambda delete-function --function-name $PREFIX-tools --region $REGION
+aws lambda delete-function --function-name $PREFIX-interceptor --region $REGION
+aws s3 rb s3://$BUCKET --force
+aws cognito-idp delete-user-pool --user-pool-id $POOL_ID --region $REGION
+
+5. Delete the Knowledge Base, its data source and the vector store.
+
+aws bedrock-agent delete-data-source --knowledge-base-id $KB_ID --data-source-id $DATA_SOURCE_ID --region $REGION
+aws bedrock-agent delete-knowledge-base --knowledge-base-id $KB_ID --region $REGION
+aws s3vectors delete-index --vector-bucket-name $PREFIX-vectors --index-name papers-index --region $REGION
+aws s3vectors delete-vector-bucket --vector-bucket-name $PREFIX-vectors --region $REGION
+
+6. Delete the guardrail.
+
+aws bedrock delete-guardrail --guardrail-identifier $GUARDRAIL_ID --region $REGION
+
+If you also created a guardrail earlier in a different AWS account by mistake, switch to that account and delete it there too.
+
+7. Delete the IAM roles (remove their policies first).
+
+for r in $PREFIX-tools-role $PREFIX-interceptor-role $PREFIX-kb-role; do
+  for p in $(aws iam list-role-policies --role-name $r --query 'PolicyNames[]' --output text); do aws iam delete-role-policy --role-name $r --policy-name $p; done
+  for a in $(aws iam list-attached-role-policies --role-name $r --query 'AttachedPolicies[].PolicyArn' --output text); do aws iam detach-role-policy --role-name $r --policy-arn $a; done
+  aws iam delete-role --role-name $r
+done
+
+8. Check nothing is left. All four should print nothing.
+
+aws lambda list-functions --region $REGION --query "Functions[?starts_with(FunctionName,'$PREFIX')].FunctionName" --output text
+aws iam list-roles --query "Roles[?starts_with(RoleName,'$PREFIX')].RoleName" --output text
+aws s3 ls | grep $PREFIX
+aws bedrock-agent list-knowledge-bases --region $REGION --query "knowledgeBaseSummaries[?starts_with(name,'$PREFIX')].name" --output text

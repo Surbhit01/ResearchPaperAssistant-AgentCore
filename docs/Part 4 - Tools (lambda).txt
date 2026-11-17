@@ -1,0 +1,34 @@
+PART 4 : TOOLS (As lambda)
+
+1. Make a directory /lambda/tools and /iam for storing iam related policies
+
+2. Add the handler.py inside /tools
+
+3. Add the tool_schema.json and tools-env.json.tmpl in the /lambda folder
+4. Add lambda-trust-policy.json.tmpl and tools-access.json.tmpl in the IAM folder
+
+5. Create the lambda's role and permissions
+Render the trust policy first (it has no variables, so it is copied as is): python3 scripts/replace_env.py iam/lambda-trust-policy.json.tmpl
+Create role - 
+aws iam create-role --role-name $PREFIX-tools-role --assume-role-policy-document file://iam/lambda-trust-policy.json --query Role.Arn --output text
+
+Attach role policy
+aws iam attach-role-policy --role-name $PREFIX-tools-role --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+6. Replace variables in tools-access.json.tmpl and execute put role Policy
+aws iam put-role-policy --role-name $PREFIX-tools-role --policy-name tools-access --policy-document file://iam/tools-access.json
+
+7. Package the tools and create the lambda functions
+
+7.1 Replace env vars in tools-env.json.tmpl
+
+7.2 Zip the handler from lambda/tools (IMP : This is the structure wanted by the lambda function. After unzipping the folder, the file should be present at the root)
+zip -q ../tools.zip handler.py
+
+7.3 Create the function
+
+aws lambda create-function --function-name $PREFIX-tools --runtime python3.12 --handler handler.lambda_handler --timeout 60 --memory-size 256 \
+  --role arn:aws:iam::${ACCOUNT_ID}:role/$PREFIX-tools-role --environment file://lambda/tools-env.json \
+  --zip-file fileb://lambda/tools.zip --region $REGION --query '{name:FunctionName,state:State}'
+
+Verify - aws lambda wait function-active-v2 --function-name $PREFIX-tools --region $REGION

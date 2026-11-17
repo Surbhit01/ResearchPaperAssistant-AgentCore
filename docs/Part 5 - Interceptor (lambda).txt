@@ -1,0 +1,19 @@
+PART 5 : INTERCEPTORS (As lambda)
+
+1. Create handler.py for the interceptor
+
+2. Create role and policies for interceptor
+The trust policy iam/lambda-trust-policy.json was rendered from its template in Part 4.
+Create role - aws iam create-role --role-name $PREFIX-interceptor-role --assume-role-policy-document file://iam/lambda-trust-policy.json --query Role.Arn --output text
+Attach role policy - aws iam attach-role-policy --role-name $PREFIX-interceptor-role --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+3. Package the handler and create the lambda function
+From interceptor root folder, zip the handler.py
+
+zip -q ../interceptor.zip handler.py
+
+Store the interceptor ARN as env variable
+
+aws lambda create-function --function-name $PREFIX-interceptor --runtime python3.12 --handler handler.lambda_handler --timeout 10 \
+  --role arn:aws:iam::${ACCOUNT_ID}:role/$PREFIX-interceptor-role --zip-file fileb://lambda/interceptor.zip --region $REGION \
+  --query '{name:FunctionName,arn:FunctionArn}'

@@ -1,0 +1,22 @@
+PART 10 : EVALUATIONS (golden dataset run against the deployed agent)
+
+1. Add the golden dataset (15 questions with reference answers, expected tools and assertions) and the runner script to the evals folder.
+evals/golden_dataset.json
+evals/run_evals.py
+
+2. Make sure the test user's library has the three golden papers in READY status (1706.03762, 2307.03172, 1810.04805). 
+Check from the UI -> "What papers are in my library?". If not present, add the relevant papers.
+
+3. Ask all 15 questions to the deployed agent. Each question runs in its own session and the answer, tools used and time are recorded in a new folder under evals/runs/.
+
+python3 evals/run_evals.py invoke
+
+4. Wait 1-2 minutes for the traces to reach CloudWatch, then score the recorded sessions with AgentCore Evaluations (on-demand, with the reference answers as ground truth).
+
+python3 evals/run_evals.py evaluate --run latest
+
+5. Print the score table (one row per question and averages per question type).
+
+python3 evals/run_evals.py report --run latest
+
+6. To see why a score is what it is, open evals/runs/<run>/eval/<question id>.json -> the judge's explanation for each evaluator is in it.

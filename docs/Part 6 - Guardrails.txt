@@ -1,0 +1,11 @@
+PART 6 : GUARDRAILS
+
+1. Create a new guardrails folder inside project root and add the template json. Replace the env Variables
+
+2. Create the guardrails and store the id as GUARDRAIL_ID in env
+aws bedrock create-guardrail --cli-input-json file://guardrails/create-guardrails.json --region $REGION --query guardrailId --output text
+
+3. Create the guardrail version
+aws bedrock create-guardrail-version --guardrail-identifier $GUARDRAIL_ID --description 'input guard' --region $REGION --query version --output text
+
+Save the above generated version as env var (GUARDRAIL_VERSION)
